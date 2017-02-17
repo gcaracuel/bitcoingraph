@@ -28,6 +28,10 @@ parser.add_argument("-u", "--user", required=True,
                     help="Bitcoin Core RPC username")
 parser.add_argument("-p", "--password", required=True,
                     help="Bitcoin Core RPC password")
+parser.add_argument("-b", "--bitcoin_server", required=True,
+                    help="Bitcoin Core Server address")
+parser.add_argument("-t", "--tmp", required=False, type=str, default="/tmp",
+                    help="Temporal directory path")
 
 
 if len(sys.argv) <= 1:
@@ -36,14 +40,16 @@ if len(sys.argv) <= 1:
 
 args = parser.parse_args()
 bcgraph = BitcoinGraph(
-    blockchain={'host': 'localhost', 'port': 8332,
+    blockchain={'host': args.bitcoin_server, 'port': 8332,
                 'rpc_user': args.user, 'rpc_pass': args.password,
                 'method': 'REST'})
 bcgraph.export(
     args.startheight,
     args.endheight,
+    args.tmp,
     args.output_path,
     args.plain_header,
     not args.no_separate_header,
     progress,
-    not args.no_transaction_deduplication)
+    not args.no_transaction_deduplication
+    )

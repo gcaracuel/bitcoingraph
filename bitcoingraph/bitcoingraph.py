@@ -125,7 +125,7 @@ class BitcoinGraph:
         """Return the current balance of this address."""
         return self.graph_db.get_unspent_bitcoins(address)
 
-    def export(self, start, end, output_path=None, plain_header=False, separate_header=True,
+    def export(self, start, end, tmp_dir,output_path=None, plain_header=False, separate_header=True,
                progress=None, deduplicate_transactions=True):
         """Export the blockchain into CSV files."""
         if output_path is None:
@@ -142,11 +142,11 @@ class BitcoinGraph:
                     if percentage > last_percentage:
                         progress(processed_blocks / number_of_blocks)
         if separate_header:
-            sort(output_path, 'addresses.csv', '-u')
+            sort(output_path, 'addresses.csv', '-u -T {0}'.format(tmp_dir) )
             if deduplicate_transactions:
                 for base_name in ['transactions', 'rel_tx_output',
                                   'outputs', 'rel_output_address']:
-                    sort(output_path, base_name + '.csv', '-u')
+                    sort(output_path, base_name + '.csv', '-u -T {0}'.format(tmp_dir))
 
     def synchronize(self, max_blocks=None):
         """Synchronise the graph database with the blockchain
@@ -166,13 +166,13 @@ class BitcoinGraph:
                 self.graph_db.add_block(block)
 
 
-def compute_entities(input_path, sort_input=False):
+def compute_entities(input_path, tmp_dir, sort_input=False):
     """Read exported CSV files containing blockchain information and
     export entities into CSV files.
     """
     if sort_input:
         sort(input_path, 'rel_output_address.csv')
-    sort(input_path, 'rel_input.csv', '-k 2 -t ,')
+    sort(input_path, 'rel_input.csv', '-k 2 -t , -T {0}'.format(tmp_dir))
     entities.calculate_input_addresses(input_path)
-    sort(input_path, 'input_addresses.csv')
+    sort(input_path, 'input_addresses.csv','-T {0}'.format(tmp_dir))
     entities.compute_entities(input_path)
